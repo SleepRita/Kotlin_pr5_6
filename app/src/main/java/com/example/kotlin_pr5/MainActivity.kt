@@ -12,6 +12,7 @@ import com.example.kotlin_pr5.databinding.ActivityMainBinding
 import com.example.kotlin_pr5.model.todos.Todos
 import com.example.kotlin_pr5.model.todos.TodosDatabase
 import com.example.kotlin_pr5.retrofit.api.MainApi
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -19,9 +20,14 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import javax.inject.Inject
 import kotlin.random.Random
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
+    @Inject
+    lateinit var retrofit: Retrofit
+
     private lateinit var binding: ActivityMainBinding
     private lateinit var vm: DataViewModel
 
@@ -45,8 +51,7 @@ class MainActivity : AppCompatActivity() {
             binding.completedText.text = vm.completed.value
         }
 
-        val retrofit = Retrofit.Builder().baseUrl("https://dummyjson.com")
-            .addConverterFactory(GsonConverterFactory.create()).build()
+        // hilt создаст экземпляр
         val todosMainApi = retrofit.create(MainApi::class.java)
 
         val db = Room.databaseBuilder(applicationContext, TodosDatabase::class.java, "todos_db")
@@ -61,9 +66,7 @@ class MainActivity : AppCompatActivity() {
                     val todos = todosMainApi.getTodosById(randId)
                     dao.insertTodos(todos)
                 }
-                catch (e: SQLiteConstraintException)
-                {
-                }
+                catch (e: SQLiteConstraintException) { }
                 dao.getTodosById(randId)
             }
 
